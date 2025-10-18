@@ -2,11 +2,11 @@ import os
 import json
 from dotenv import load_dotenv, find_dotenv
 from litellm import completion
-from logger import logger
-from pydantic.tools import parse_obj_as
 from ..schemas.topic import TopicSchema
+from pydantic.tools import parse_obj_as
 from ..states.sales_agent_state import SalesAgentState
 from ..utils.helpers import parsing_messages_to_history, remove_think_tag
+from logger import logger
 from config import LLM_MODELS
 
 load_dotenv(find_dotenv())
@@ -25,9 +25,9 @@ def router_node(state: SalesAgentState):
     chat_history = parsing_messages_to_history(state.get('messages', ''))
 
     json_example = {
-        "name": f"One of the following values: {', '.join(TOPIC.values())}",
+        "name": f"Một trong các giá trị sau: {', '.join(TOPIC.values())}",
         "confidence": "Score between 0 and 1",
-        "context": "User input context"
+        "context": "User's input"
     }
 
     prompt = f"""
@@ -128,7 +128,8 @@ def router_node(state: SalesAgentState):
             - Thôi để khi khác mua nha.
             - Để anh suy nghĩ thêm.
             - Anh không mua nữa, để lần sau nha.
-     # Ouput
+
+    # Ouput
     - Assistant MUST trả lời bằng JSON format với các field như sau:
     ```
     {json.dumps(json_example, ensure_ascii=False)}
@@ -158,21 +159,20 @@ def router_node(state: SalesAgentState):
 
     topic = state.get('topic', None)
     logger.info(f"Topic: {topic}")
-    logger.info(f"New Topic: {new_topic}")
     
-    # if topic is None:
-    #     if new_topic.name != TOPIC.get('off_topic') and new_topic.confidence < 0.5:
-    #         new_topic.name = TOPIC.get('off_topic')
+    if topic is None:
+        if new_topic.name != TOPIC.get('off_topic') and new_topic.confidence < 0.5:
+            new_topic.name = TOPIC.get('off_topic')
 
-    #     logger.info(f"New Topic: {new_topic}")
-    #     return {
-    #         "topic": new_topic,
-    #         "human_input": user_input,
-    #         "ai_reply": None
-    #     }
+        logger.info(f"New Topic: {new_topic}")
+        return {
+            "topic": new_topic,
+            "human_input": user_input,
+            "ai_reply": None
+        }
 
     return {
-        "topic": new_topic,
         "human_input": user_input,
         "ai_reply": None
     }
+    
