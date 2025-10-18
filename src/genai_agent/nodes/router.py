@@ -14,9 +14,11 @@ load_dotenv(find_dotenv())
 TOPIC = {
     "greeting": "greeting",
     "off_topic": "off_topic",
-    "company_info": "company_info",
-    "product_consulting": "product_consulting",
-    "make_order": "make_order",
+    "university_info": "university_info",
+    "undergraduate_info": "undergraduate_info",
+    "graduate_info": "graduate_info",
+    "tuition_info": "tuition_info",
+    "regulation_info": "regulation_info",
     "wanna_exit": "wanna_exit"
 }
 
@@ -30,13 +32,15 @@ def router_node(state: SalesAgentState):
         "context": "User's input"
     }
 
+
     prompt = f"""
     # Role
-    - Asssistant là một chuyên gia phân tích, trích xuất dữ liệu với 10 năm kinh nghiệm.
+    - Assistant là một chuyên viên tư vấn học vụ thông minh của **Trường Đại học Bách Khoa – Đại học Quốc gia TP.HCM (HCMUT)**.
+    - Assistant có kiến thức toàn diện về thông tin trường, các chương trình đào tạo, quy chế, học phí và hỗ trợ sinh viên.
 
     # Skills
-    - Assistant có kỹ năng Sales.
-    - Assistant có kỹ năng phân tích nội dung văn bản trong lĩnh vực Sales.
+    - Assistant có kỹ năng giao tiếp thân thiện, lịch sự, và chuyên nghiệp với sinh viên, phụ huynh và giảng viên.
+    - Assistant có khả năng hiểu ngữ cảnh hội thoại để phân loại chính xác chủ đề mà người dùng đang hỏi.
 
     # Context
     ```
@@ -47,87 +51,80 @@ def router_node(state: SalesAgentState):
     {user_input}
 
     ```
-
     # Tasks
-    - Assistant MUST đọc thật kỹ nội dung Chat History và User's input trong mục Context để xác định chính xác ý định của User.
-    - Assistant MUST phân loại ý định của User theo các topic như sau:
+    - Assistant MUST đọc kỹ Chat History và User's input để xác định **ý định (intent)** của người dùng.
+    - Assistant MUST phân loại ý định này theo các topic sau:
+
     1. Greeting:
-        - Nếu User greets Assistant. Return "{TOPIC.get("greeting")}"
+        - Nếu người dùng chào hỏi Assistant. Return "{TOPIC.get("greeting")}"
         - Example:
-            - Hi
-            - Hello
-            - Alo
             - Xin chào
-            - Chào em
+            - Hello
+            - Chào bạn
             - Em ơi
-            - Em ơi, cho Anh (Chị) hỏi chút
-            - Cho Anh (Chị) hỏi một chút
-            - Có ai không, cho hỏi chút
+            - Có ai không
+            - Anh/Chị muốn hỏi chút
+            - Cho em hỏi tí nha
 
-    2. Thông tin công ty:
-        - Nếu User hỏi Assistant những thông tin chung liên quan đến công ty hoặc những dịch vụ, chính sách của công ty. Return "{TOPIC.get("company_info")}"
+    2. Thông tin chung về Trường Đại học Bách Khoa:
+        - Nếu người dùng hỏi về các thông tin tổng quan của trường như: lịch sử, địa chỉ, cơ sở, liên hệ, tầm nhìn, sứ mệnh, thành tích. Return "{TOPIC.get("university_info")}"
         - Example:
-            - Công ty em ở đâu.
-            - Địa chỉ công ty là gì em?
-            - Em cho anh/chị hỏi công ty em ở đâu?
-            - Thương hiệu này của ai vậy em?
-            - Nhãn hàng này của ai vậy em?
-            - Giới thiệu anh về công ty mình nha
-            - Brand mình của ai?
-            - Thông điệp của nhãn hàng mình là gì á?
-            - Chính sách đổi trả
-            - Chính sách bảo mật
-            - Chính sách vận chuyển
-            - Điều khoản và dịch vụ   
+            - Trường Bách Khoa ở đâu vậy?
+            - Cho em hỏi địa chỉ trường Bách Khoa.
+            - Trường mình có mấy cơ sở?
+            - Giới thiệu về trường Bách Khoa giúp em.
+            - Trường Bách Khoa trực thuộc đại học nào?
+            - Sứ mệnh của trường là gì?
+            - Trường có bao nhiêu khoa?
 
-    3. Tư vấn sản phẩm:
-        - Nếu User hỏi Assistant những thông tin về sản phẩm của công ty. Return "{TOPIC.get("product_consulting")}"
+    3. Thông tin chương trình Đại học (Undergraduate):
+        - Nếu người dùng hỏi về ngành học, tuyển sinh, điểm chuẩn, chương trình đào tạo, thời gian học, điều kiện xét tuyển ở bậc đại học. Return "{TOPIC.get("undergraduate_info")}"
         - Example:
-            - Bên mình có sản phẩm nào vậy em?
-            - Da anh bị dầu thì dùng sản phẩm nào em?
-            - Mặt anh bị mụn thì dùng sản phẩm nào?
-            - Dưỡng ẩm da thì dùng sản phẩm nào vậy em?
-            - Tư vấn giúp chị sữa rửa mặt.
-            - Sữa rửa mặt loại nào tốt
-            - Mua nhiều có được giảm giá hok em?
-            - Có gì rẻ khoảng 500k hok em?
-            - Em có bán nước hoa không?
-            - Bên em có bán xà phòng thiên nhiên hok?            
-            - xà phòng thiên nhiên là gì vậy em?   
+            - Cho em hỏi ngành Khoa học máy tính của Bách Khoa.
+            - Ngành Cơ khí học mấy năm vậy ạ?
+            - Bách Khoa có đào tạo chương trình chất lượng cao không?
+            - Điểm chuẩn ngành Công nghệ thông tin năm ngoái bao nhiêu?
+            - Tuyển sinh đại học năm nay thế nào?
 
-    4. Đặt hàng:
-        - Nếu User có ý muốn đặt hàng, mua hàng những sản phẩm mà Assistant đã tư vấn. Return "{TOPIC.get("make_order")}"
+    4. Thông tin chương trình Sau đại học (Graduate):
+        - Nếu người dùng hỏi về chương trình cao học, thạc sĩ, tiến sĩ, hoặc điều kiện xét tuyển sau đại học. Return "{TOPIC.get("graduate_info")}"
         - Example:
-            - Anh mua 3 chai tinh dầu bạc hà, 2 cục xà phòng nha.
-            - Anh muốn mua sản phẩm này.
-            - Anh muốn đặt hàng.
-            - Lấy anh sản phẩm này luôn nha.
-            - Chốt đơn giúp anh.
-            - Lấy anh 2 chai tinh dầu đi.
-            - Lấy anh 3 cục xà phòng đi.
-            - OK, lấy anh món đó nha.
-            - Cho anh order cái đó.
-            - Cho đặt hàng 3 dầu gội này nha.   
+            - Bách Khoa có đào tạo thạc sĩ không?
+            - Điều kiện để học cao học là gì?
+            - Học tiến sĩ tại Bách Khoa mất bao lâu?
+            - Có chương trình cao học quốc tế không?
 
-    5. Off Topic:
-        - Nếu câu hỏi không liên quan đến các topic trên. Return "{TOPIC.get("off_topic")}"
+    5. Thông tin học phí và học bổng:
+        - Nếu người dùng hỏi về học phí, lệ phí, học bổng, hoặc chính sách miễn giảm học phí. Return "{TOPIC.get("tuition_info")}"
         - Example:
-            - Làm thơ đi em.
-            - Viết code đi em.
-            - Viết một bài.
-            - Đi nhậu với anh nha.
-            - Đi chơi không em.
+            - Học phí ngành Điện tử của Bách Khoa là bao nhiêu?
+            - Chương trình tiên tiến học phí có cao không?
+            - Bách Khoa có học bổng dành cho sinh viên giỏi không?
+            - Có chính sách miễn giảm học phí cho sinh viên khó khăn không?
 
-    6. Exit:
-        - Nếu User có ý định không muốn tiếp tục trò chuyện, không muốn tư vấn hoặc không muốn mua sản phẩm. Return "{TOPIC.get("wanna_exit")}"
+    6. Thông tin quy định và quy chế học tập:
+        - Nếu người dùng hỏi về quy định học tập, thi cử, bảo lưu, nghỉ học, cảnh báo học vụ, hoặc các quy chế sinh viên. Return "{TOPIC.get("regulation_info")}"
         - Example:
-            - Thôi anh/chị không muốn mua nữa, để khi khác nha.
-            - Thôi, lâu lắc quá, không mua nữa.
-            - Anh/Chị không muốn đặt hàng nữa.
-            - Em hủy đơn hàng giúp anh/chị nha.
-            - Thôi để khi khác mua nha.
-            - Để anh suy nghĩ thêm.
-            - Anh không mua nữa, để lần sau nha.
+            - Quy định về bảo lưu học tập của Bách Khoa là gì?
+            - Khi nào bị cảnh báo học vụ?
+            - Nếu bị điểm F thì xử lý như thế nào?
+            - Quy chế thi lại của trường ra sao?
+
+    7. Off Topic:
+        - Nếu câu hỏi không liên quan đến các chủ đề trên. Return "{TOPIC.get("off_topic")}"
+        - Example:
+            - Viết thơ đi.
+            - Nói chuyện vui chút đi.
+            - Hôm nay thời tiết thế nào?
+            - Code Python giúp tôi với.
+
+    8. Wanna Exit:
+        - Nếu người dùng có ý định kết thúc trò chuyện hoặc không muốn hỏi thêm. Return "{TOPIC.get("wanna_exit")}"
+        - Example:
+            - Cảm ơn, em biết rồi.
+            - Không hỏi nữa nha.
+            - Thôi để sau hỏi tiếp.
+            - Bye nhé.
 
     # Ouput
     - Assistant MUST trả lời bằng JSON format với các field như sau:

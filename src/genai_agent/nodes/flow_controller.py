@@ -4,9 +4,11 @@ from logger import logger
 TOPIC_FLOW_MAPPING = {
     "greeting": "greeting",
     "off_topic": "off_topic",
-    "company_info": "company_info",
-    "product_consulting": "product_consulting",
-    "make_order": "make_order",
+    "university_info": "university_info",
+    "undergraduate_info": "undergraduate_info",
+    "graduate_info": "graduate_info",
+    "tuition_info": "tuition_info",
+    "regulation_info": "regulation_info",
     "wanna_exit": "wanna_exit"
 }
 

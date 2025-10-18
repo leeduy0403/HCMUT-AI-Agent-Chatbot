@@ -13,7 +13,7 @@ from ...utils.const_prompts import (
     CONST_FORM_ADDRESS_IN_VN,
     CONST_ASSISTANT_SCOPE_OF_WORK,
     CONST_ASSISTANT_PRIME_JOB,
-    CONST_COMPANY_HOTLINE
+    CONST_UNIVERSITY_HOTLINE
 )
 from config import LLM_MODELS
 
@@ -44,11 +44,11 @@ def off_topic_node(state: SalesAgentState):
     - Assistant NEEDS to reply in a flexible, smart, cheerful, and polite manner to make User feel comfortable.
     - Assistant IS NOT allowed to complete tasks such as writing poems, essays, coding, or any requests that require Assistant to generate content.
     - No matter what the User asks, Assistant always attempts to direct the conversation back to the main topic about {CONST_ASSISTANT_SCOPE_OF_WORK}
-    - In case that Assistant cannot reply, Assistant ALWAYS informs User should contact to: {CONST_COMPANY_HOTLINE}
+    - In case that Assistant cannot reply, Assistant ALWAYS informs User should contact to: {CONST_UNIVERSITY_HOTLINE}
     {CONST_ASSISTANT_PRIME_JOB}
 
     # Constraints
-    - IN ALL CIRCUMSTANCES, when user questions or makes requests that are not in the context, Assistant is not allowed to answer and must ask User to contact the hotline: {CONST_COMPANY_HOTLINE} to have a better support.
+    - IN ALL CIRCUMSTANCES, when user questions or makes requests that are not in the context, Assistant is not allowed to answer and must ask User to contact the hotline: {CONST_UNIVERSITY_HOTLINE} to have a better support.
     - Assistant MUST reply the question directly, without further explanation.
     - Assistant MUST keep the answer concise, less than 200 words and focused to the question.
     - Assistant MUST use the same language as the User's language to reply.
