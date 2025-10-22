@@ -7,6 +7,7 @@ from .nodes.flow_controller import flow_controller_node, get_selected_flow
 from .nodes.do_nothing import do_nothing_node
 from .subgraphs.greeting_subgraph import build_greeting_subgraph
 from .subgraphs.off_topic_subgraph import build_off_topic_subgraph
+from .subgraphs.uni_info_subgraph import build_uni_info_subgraph
 from langgraph.checkpoint.memory import MemorySaver
 
 
@@ -14,7 +15,8 @@ load_dotenv(find_dotenv())
 
 SUBGRAPH_PATH_MAP = {
     'greeting': 'greeting_subgraph',
-    'off_topic': 'off_topic_subgraph'
+    'off_topic': 'off_topic_subgraph',
+    'university_info': 'uni_info_subgraph',
 }
 
 def build_graph():
@@ -23,6 +25,7 @@ def build_graph():
     graph.add_node("flow_controller_node", flow_controller_node)
     graph.add_node("greeting_subgraph", build_greeting_subgraph())
     graph.add_node("off_topic_subgraph", build_off_topic_subgraph())
+    graph.add_node("uni_info_subgraph", build_uni_info_subgraph())
     # graph.add_node("do_nothing_node", do_nothing_node)
 
     graph.set_entry_point("router_node") # START -> router_node

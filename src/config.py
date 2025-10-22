@@ -14,5 +14,8 @@ LLM_MODELS = {
     },
     "off_topic_subgraph": {
         "off_topic_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    },
+    "llm_subgraph": {
+        "llm_node": os.getenv('OPEN_LLM_MODEL_GPT_4')
     }
 }

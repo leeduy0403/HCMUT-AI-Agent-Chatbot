@@ -28,7 +28,7 @@ def router_node(state: SalesAgentState):
 
     json_example = {
         "name": f"Một trong các giá trị sau: {', '.join(TOPIC.values())}",
-        "confidence": "Score between 0 and 1",
+        "confidence": "Float Score between 0 and 1",
         "context": "User's input"
     }
 
@@ -156,7 +156,9 @@ def router_node(state: SalesAgentState):
 
     topic = state.get('topic', None)
     logger.info(f"Topic: {topic}")
-    
+
+    if isinstance(new_topic.confidence, str):
+        new_topic.confidence = 0.0
     if topic is None:
         if new_topic.name != TOPIC.get('off_topic') and new_topic.confidence < 0.5:
             new_topic.name = TOPIC.get('off_topic')
