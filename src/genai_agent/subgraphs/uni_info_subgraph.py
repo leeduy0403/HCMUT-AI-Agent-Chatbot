@@ -1,10 +1,10 @@
 from langgraph.graph import StateGraph, END
 from ..nodes.subgraph.uni_info_nodes import uni_info_node
 from ..nodes.reset_topic import reset_topic_node
-from ..states.sales_agent_state import SalesAgentState
+from ..states.agent_state import AgentState
 
 def build_uni_info_subgraph():
-    graph = StateGraph(SalesAgentState)
+    graph = StateGraph(AgentState)
     graph.add_node("uni_info_node", uni_info_node)
     graph.add_node("reset_topic_node", reset_topic_node)
 

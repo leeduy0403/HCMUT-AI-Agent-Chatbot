@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
 from langchain_core.messages import AIMessage
-from ...states.sales_agent_state import SalesAgentState
+from ...states.agent_state import AgentState
 from litellm import completion
 from logger import logger
 from ...utils.helpers import parsing_messages_to_history, remove_think_tag
@@ -22,7 +22,7 @@ from config import LLM_MODELS
 
 load_dotenv(find_dotenv())
 
-def off_topic_node(state: SalesAgentState):
+def off_topic_node(state: AgentState):
     logger.info("off_topic_node called.")
     user_input = state['messages'][-1].content
     chat_history = parsing_messages_to_history(state.get('messages', ''))

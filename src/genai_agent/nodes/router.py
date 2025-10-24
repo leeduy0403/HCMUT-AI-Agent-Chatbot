@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 from litellm import completion
 from ..schemas.topic import TopicSchema
 from pydantic.tools import parse_obj_as
-from ..states.sales_agent_state import SalesAgentState
+from ..states.agent_state import AgentState
 from ..utils.helpers import parsing_messages_to_history, remove_think_tag
 from logger import logger
 from config import LLM_MODELS
@@ -17,12 +17,12 @@ TOPIC = {
     "university_info": "university_info",
     "undergraduate_info": "undergraduate_info",
     "graduate_info": "graduate_info",
-    "tuition_info": "tuition_info",
+    "tuition_fee_info": "tuition_fee_info",
     "regulation_info": "regulation_info",
     "wanna_exit": "wanna_exit"
 }
 
-def router_node(state: SalesAgentState):
+def router_node(state: AgentState):
     user_input = state['messages'][-1].content
     chat_history = parsing_messages_to_history(state.get('messages', ''))
 
@@ -95,7 +95,7 @@ def router_node(state: SalesAgentState):
             - Có chương trình cao học quốc tế không?
 
     5. Thông tin học phí và học bổng:
-        - Nếu người dùng hỏi về học phí, lệ phí, học bổng, hoặc chính sách miễn giảm học phí. Return "{TOPIC.get("tuition_info")}"
+        - Nếu người dùng hỏi về học phí và học bổng, các từ "học phí", "lệ phí", "học bổng", hoặc "chính sách miễn giảm học phí",.... Return "{TOPIC.get("tuition_info")}"
         - Example:
             - Học phí ngành Điện tử của Bách Khoa là bao nhiêu?
             - Chương trình tiên tiến học phí có cao không?

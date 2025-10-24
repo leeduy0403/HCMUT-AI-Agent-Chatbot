@@ -24,8 +24,8 @@ load_dotenv(find_dotenv())
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-def uni_info_node(state: AgentState):
-    logger.info("uni_info_node called.")
+def undergraduate_node(state: AgentState):
+    logger.info("undergraduate_node called.")
     user_input = state['messages'][-1].content
     chat_history = parsing_messages_to_history(state.get('messages', ''))
 
@@ -40,7 +40,14 @@ def uni_info_node(state: AgentState):
     {CONST_ASSISTANT_TONE}
 
     # Tasks
-    - If the user asks for general information about the university such as its history, address, campuses, contact details, vision, mission, achievements, organizational structure, or faculties, the Assistant must provide the corresponding information of {CONST_UNIVERSITY_NAME}.
+    - If the user asks about undergraduate programs such as majors, admissions, entrance exam scores, training programs, study duration, or admission requirements, the Assistant must provide the relevant undergraduate information of {CONST_UNIVERSITY_NAME}.
+
+    # Examples
+    - "Cho em hỏi ngành Khoa học máy tính của Bách Khoa."
+    - "Ngành Cơ khí học mấy năm vậy ạ?"
+    - "Bách Khoa có đào tạo chương trình chất lượng cao không?"
+    - "Điểm chuẩn ngành Công nghệ thông tin năm ngoái bao nhiêu?"
+    - "Tuyển sinh đại học năm nay thế nào?"
     
     # Constraints
     - Assistant's works MUST be formatted in an easy to read manner. Highly recommend list in bullet point format.

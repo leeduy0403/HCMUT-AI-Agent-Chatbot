@@ -1,10 +1,10 @@
 from langgraph.graph import StateGraph, END
 from ..nodes.subgraph.greeting_nodes import greeting_node
 from ..nodes.reset_topic import reset_topic_node
-from ..states.sales_agent_state import SalesAgentState
+from ..states.agent_state import AgentState
 
 def build_greeting_subgraph():
-    graph = StateGraph(SalesAgentState)
+    graph = StateGraph(AgentState)
     graph.add_node("greeting_node", greeting_node)
     graph.add_node("reset_topic_node", reset_topic_node)
 

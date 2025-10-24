@@ -17,5 +17,8 @@ LLM_MODELS = {
     },
     "llm_subgraph": {
         "llm_node": os.getenv('OPEN_LLM_MODEL_GPT_4')
+    },
+    "tuition_fee_subgraph": {
+        "tuition_fee_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
     }
 }

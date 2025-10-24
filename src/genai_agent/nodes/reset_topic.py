@@ -1,6 +1,6 @@
-from ..states.sales_agent_state import SalesAgentState
+from ..states.agent_state import AgentState
 
-def reset_topic_node(state: SalesAgentState):
+def reset_topic_node(state: AgentState):
     return {
         "topic": None,
     }

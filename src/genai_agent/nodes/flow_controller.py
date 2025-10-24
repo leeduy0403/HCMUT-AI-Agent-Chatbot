@@ -1,4 +1,4 @@
-from ..states.sales_agent_state import SalesAgentState
+from ..states.agent_state import AgentState
 from logger import logger
 
 TOPIC_FLOW_MAPPING = {
@@ -7,12 +7,12 @@ TOPIC_FLOW_MAPPING = {
     "university_info": "university_info",
     "undergraduate_info": "undergraduate_info",
     "graduate_info": "graduate_info",
-    "tuition_info": "tuition_info",
+    "tuition_fee_info": "tuition_fee_info",
     "regulation_info": "regulation_info",
     "wanna_exit": "wanna_exit"
 }
 
-def flow_controller_node(state: SalesAgentState):
+def flow_controller_node(state: AgentState):
     selected_flow = TOPIC_FLOW_MAPPING[state['topic'].name]
     logger.info(f"Selected Flow: {selected_flow}")
 
@@ -20,5 +20,5 @@ def flow_controller_node(state: SalesAgentState):
         "selected_flow": selected_flow
     }
 
-def get_selected_flow(state: SalesAgentState):
+def get_selected_flow(state: AgentState):
     return state.get('selected_flow', TOPIC_FLOW_MAPPING['off_topic'])
