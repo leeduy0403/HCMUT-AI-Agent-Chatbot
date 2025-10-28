@@ -4,175 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HCMUT Assistant</title>
-    <style>
-        /* Basic styling for the chat interface */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #chat-container {
-            width: 400px;
-            height: 600px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-window {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            border-bottom: 1px solid #eee;
-        }
-        .message {
-            margin-bottom: 12px;
-            padding: 8px 12px;
-            border-radius: 18px;
-            max-width: 75%;
-            word-wrap: break-word;
-        }
-        .message.user {
-            background-color: #007aff;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-        .message.assistant {
-            background-color: #e5e5ea;
-            color: black;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-        #chat-form {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #eee;
-        }
-        #chat-input {
-            flex-grow: 1;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            padding: 10px 15px;
-            font-size: 14px;
-            outline: none;
-        }
-        #send-button {
-            background-color: #007aff;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 10px 15px;
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        #send-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    
+    <div class="app-layout">
 
-    <div id="chat-container">
-        <div id="chat-window">
-            <div class="message assistant">
-                Dạ, em là BK Assistant. Em có thể hỗ trợ Anh/Chị về thông tin tuyển sinh, học phí, hoặc các khoa của trường. Anh/Chị cần em giúp gì ạ?
+        <div class="sidebar">
+            <button class="new-chat-button">
+                + New Chat
+            </button>
+            <div class="chat-history">
+                <a href="#" class="chat-history-item">Thông tin tuyển sinh...</a>
             </div>
         </div>
-        <form id="chat-form">
-            <input type="text" id="chat-input" placeholder="Nhập câu hỏi..." autocomplete="off">
-            <button type="submit" id="send-button">Gửi</button>
-        </form>
+
+        <div class="main-chat">
+            
+            <div id="chat-window">
+                </div>
+
+            <div class="chat-input-area">
+                <form id="chat-form">
+                    <textarea id="chat-input" placeholder="Nhập câu hỏi..."></textarea>
+                    
+                    <button type="submit" id="send-button">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+                <p class="footer-text">
+                    BK Assistant có thể cung cấp thông tin chưa chính xác.
+                </p>
+            </div>
+
+        </div>
     </div>
 
-    <script>
-        // --- JavaScript Logic ---
-
-        // 1. Get references to the HTML elements
-        const chatWindow = document.getElementById('chat-window');
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const sendButton = document.getElementById('send-button');
-
-        // 2. Define the API endpoint
-        const API_URL = 'http://127.0.0.1:8000/chat';
-
-        // 3. Create a unique thread_id for this conversation session
-        // This is crucial for the agent to remember the history
-        const thread_id = `thread_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-        // 4. Handle form submission
-        chatForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent the page from reloading
-
-            const userMessage = chatInput.value.trim();
-            if (userMessage === '') return;
-
-            // Add the user's message to the chat window
-            addMessage(userMessage, 'user');
-
-            // Clear the input field
-            chatInput.value = '';
-            
-            // Disable the form while waiting for a response
-            sendButton.disabled = true;
-            chatInput.disabled = true;
-
-            try {
-                // 5. Send the message and thread_id to the FastAPI server
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: userMessage,
-                        thread_id: thread_id 
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // 6. Add the assistant's response to the chat window
-                if (data.content) {
-                    addMessage(data.content, 'assistant');
-                } else if (data.error) {
-                    addMessage(`Error: ${data.error}`, 'assistant');
-                }
-
-            } catch (error) {
-                console.error('Error sending message:', error);
-                addMessage('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.', 'assistant');
-            } finally {
-                // Re-enable the form
-                sendButton.disabled = false;
-                chatInput.disabled = false;
-                chatInput.focus();
-            }
-        });
-
-        // 7. Helper function to add a message to the chat window
-        function addMessage(text, sender) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', sender);
-            messageElement.textContent = text;
-            chatWindow.appendChild(messageElement);
-
-            // Auto-scroll to the latest message
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
