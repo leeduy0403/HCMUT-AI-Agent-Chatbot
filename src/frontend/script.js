@@ -4,6 +4,9 @@ const chatWindow = document.getElementById('chat-window');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const sendButton = document.getElementById('send-button');
+const themeSwitch = document.getElementById('theme-switch-checkbox');
+const moonIcon = document.getElementById('moon-icon');
+const sunIcon = document.getElementById('sun-icon');
 
 
 const API_URL = 'http://127.0.0.1:8000/chat';
@@ -27,6 +30,39 @@ chatInput.addEventListener('keydown', (event) => {
 chatInput.addEventListener('input', () => {
     chatInput.style.height = 'auto'; // Reset chiều cao
     chatInput.style.height = (chatInput.scrollHeight) + 'px'; // Đặt chiều cao mới
+});
+
+// 1. Logic khi thay đổi công tắc
+themeSwitch.addEventListener('change', () => {
+    let theme;
+    if (themeSwitch.checked) {
+        // Nếu được check (SÁNG)
+        document.body.classList.add('light-mode');
+        theme = 'light';
+        localStorage.setItem('theme', theme);
+    } else {
+        // Nếu không check (TỐI)
+        document.body.classList.remove('light-mode');
+        theme = 'dark';
+        localStorage.setItem('theme', theme);
+    }
+    updateThemeIcons(theme); // Gọi hàm cập nhật icon
+});
+
+// 2. Logic khi tải trang
+document.addEventListener('DOMContentLoaded', () => {
+    // Tải chủ đề đã lưu (mặc định là 'dark')
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeSwitch.checked = true; // Cập nhật trạng thái switch
+    } else {
+        document.body.classList.remove('light-mode');
+        themeSwitch.checked = false; // Cập nhật trạng thái switch
+    }
+    
+    updateThemeIcons(savedTheme); // Cập nhật trạng thái icon
 });
 
 
@@ -99,9 +135,10 @@ function addMessage(text, sender) {
     
     // Đặt nội dung icon (BK cho bot, You cho user)
     if (sender === 'assistant') {
-        iconElement.textContent = 'BK';
+        iconElement.innerHTML = '<img src="images/bk.png" alt="Bot">';
     } else {
-        iconElement.textContent = 'You';
+        // Chèn avatar của User
+        iconElement.innerHTML = '<img src="images/user.png" alt="User">';
     }
     
     // Tạo thẻ div .message-text

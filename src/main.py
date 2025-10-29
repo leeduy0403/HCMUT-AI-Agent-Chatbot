@@ -1,52 +1,86 @@
 import uvicorn
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Response, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from genai_agent.agent import build_graph  # Import your graph builder
-from langchain_core.messages import HumanMessage  # <-- THÊM DÒNG NÀY
+from genai_agent.agent import build_graph
+from langchain_core.messages import HumanMessage
 from datetime import datetime
+from genai_agent.mongo_db import connect_to_mongo, close_mongo_connection, get_conversations_collection
+from motor.motor_asyncio import AsyncIOMotorCollection
+from contextlib import asynccontextmanager  
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Xử lý các sự kiện startup và shutdown.
+    """
+    # --- PHẦN STARTUP ---
+    print("Running startup procedures...")
+    await connect_to_mongo() # Kết nối đến MongoDB
+    
+    # Compile graph và lưu nó vào 'app.state'
+    # (Cách này tốt hơn là dùng 'global')
+    try:
+        app.state.agent_graph = build_graph()
+        print("✅ LangGraph agent compiled successfully!")
+    except Exception as e:
+        print(f"❌ Error compiling agent graph: {e}")
+        app.state.agent_graph = None
+    
+    yield # Ứng dụng sẽ chạy tại đây
+
+    # --- PHẦN SHUTDOWN ---
+    print("Running shutdown procedures...")
+    await close_mongo_connection() # Ngắt kết nối MongoDB
+
 
 # 1. Initialize the FastAPI app
 app = FastAPI(
     title="HCMUT Chatbot Server",
     description="API Server for the LangGraph Chatbot Agent",
+    lifespan=lifespan # <-- SỬ DỤNG LIFESPAN MỚI
 )
+# ===== KẾT THÚC THAY ĐỔI =====
 
-# 2. Add CORS middleware
-# This allows your frontend (running on a different domain) to call this API
+
+# 2. Add CORS middleware (Giữ nguyên)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# 3. Compile your LangGraph agent
-# This loads the agent into memory when the server starts
-try:
-    agent_graph = build_graph()
-    print("✅ LangGraph agent compiled successfully!")
-except Exception as e:
-    print(f"❌ Error compiling agent graph: {e}")
-    agent_graph = None
+# 3. Compile agent (Đã XÓA - chuyển vào lifespan)
+# global agent_graph = None <-- Dòng này đã bị xóa
 
-# 4. Define the request model
-# This ensures the data from the frontend has the correct shape
+
+# 4. Define the request model (Giữ nguyên)
 class ChatRequest(BaseModel):
     message: str
-    thread_id: str  # To maintain conversation memory
+    thread_id: str
 
 # 5. Define the /chat endpoint
+# ===== BẮT ĐẦU THAY ĐỔI (Cách lấy agent_graph) =====
 @app.post("/chat")
-async def chat(request: ChatRequest):
+async def chat(
+    fastapi_request: Request, # <-- THÊM fastapi_request
+    request: ChatRequest,
+    collection: AsyncIOMotorCollection = Depends(get_conversations_collection)
+):
     """
-    Nhận tin nhắn của người dùng và thread_id, trả về phản hồi của agent.
+    Nhận tin nhắn, gọi agent, và lưu lịch sử chat vào MongoDB.
     """
+    # Lấy graph từ app.state thay vì dùng global
+    agent_graph = fastapi_request.app.state.agent_graph 
+    
     if not agent_graph:
         return {"error": "Agent chưa được khởi tạo"}, 500
+# ===== KẾT THÚC THAY ĐỔI =====
 
-    # 1. Tạo input GIỐNG HỆT như trong console.py
+    # 1. Tạo input cho LangGraph (Giữ nguyên)
     inputs = {
         "messages": [
             HumanMessage(
@@ -55,37 +89,64 @@ async def chat(request: ChatRequest):
             )
         ]
     }
-    
-    # 2. Tạo config (giống như bạn đã làm)
     config = {"configurable": {"thread_id": request.thread_id}}
 
     try:
-        # 3. Gọi graph.invoke
+        # 2. Gọi graph.invoke
         response_state = agent_graph.invoke(inputs, config=config)
-        
-        # 4. Lấy câu trả lời bằng logic CHÍNH XÁC từ console.py
         ai_reply = response_state.get('ai_reply', None)
 
         if ai_reply is None:
-            # Trường hợp agent chạy xong nhưng không có tin nhắn trả lời
-            print("Cảnh báo: 'ai_reply' là None. Kiểm tra lại các node trong graph.")
-            return {"content": "Dạ, có vẻ đã xảy ra lỗi. Xin Anh/Chị thử lại."}
+            ai_content = "Dạ, có vẻ đã xảy ra lỗi. Xin Anh/Chị thử lại."
         else:
-            # Gửi nội dung tin nhắn về cho frontend
-            return {"content": ai_reply.content}
+            ai_content = ai_reply.content
+
+        # 3. Tạo các document tin nhắn để lưu
+        user_message_doc = {
+            "sender": "user",
+            "content": request.message,
+            "timestamp": datetime.now()
+        }
+        assistant_message_doc = {
+            "sender": "assistant",
+            "content": ai_content,
+            "timestamp": datetime.now()
+        }
+
+        # 4. Lưu cả 2 tin nhắn vào MongoDB
+        await collection.find_one_and_update(
+            {"thread_id": request.thread_id},
+            {
+                "$push": {
+                    "messages": {"$each": [user_message_doc, assistant_message_doc]}
+                },
+                "$setOnInsert": { 
+                    "thread_id": request.thread_id,
+                    "created_at": datetime.now()
+                }
+            },
+            upsert=True 
+        )
+
+        # 5. Trả về phản hồi của AI
+        return {"content": ai_content}
 
     except Exception as e:
-        # Nếu có lỗi, in ra terminal để debug
-        print(f"Lỗi nghiêm trọng khi gọi agent: {e}")
-        import traceback
+        print(f"Lỗi nghiêm trọng khi gọi agent hoặc MongoDB: {e}")
         traceback.print_exc()
         return {"error": "Lỗi máy chủ khi xử lý yêu cầu"}, 500
 
-# 6. (Optional) A root endpoint for testing
+
+# 6. (Optional) A root endpoint for testing (Giữ nguyên)
 @app.get("/")
 def read_root():
     return {"status": "HCMUT Chatbot API is running"}
 
-# 7. Run the server
+# Thêm route cho favicon (Giữ nguyên)
+@app.get("/favicon.ico", status_code=204)
+async def disable_favicon():
+    return Response(content=None)
+
+# 7. Run the server (Giữ nguyên)
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

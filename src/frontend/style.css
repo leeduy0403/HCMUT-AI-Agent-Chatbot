@@ -1,4 +1,4 @@
-/* Biến màu cho chủ đề tối (Dark Theme) */
+/* CHẾ ĐỘ TỐI (Mặc định)*/
 :root {
     --bg-main: #212121;
     --bg-sidebar: #000000;
@@ -8,7 +8,30 @@
     --text-color-secondary: #A9A9A9;
     --border-color: #555;
     --button-color: #1676f4;
+    --hover-color: #202123;
+    --disabled-color: #555;
+    --icon-bg-color: #555;
+    --switch-bg: #ccc;
 }
+
+/* 
+  Các biến này sẽ được áp dụng khi <body> có class "light-mode"
+*/
+body.light-mode {
+    --bg-main: #F0F2F5;
+    --bg-sidebar: #FFFFFF;
+    --bg-chat-window: #F7F7F8;
+    --bg-assistant-message: #FFFFFF;
+    --text-color-primary: #000000;
+    --text-color-secondary: #555555;
+    --border-color: #DDDDDD;
+    --button-color: #1676f4; /* Giữ nguyên màu nút */
+    --hover-color: #EEEEEE;
+    --disabled-color: #CCCCCC;
+    --icon-bg-color: #EEEEEE;
+    --switch-bg: var(--border-color);
+}
+
 
 /* Reset và cài đặt cơ bản */
 * {
@@ -19,9 +42,10 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* Tự động thay đổi màu dựa trên biến */
     background-color: var(--bg-main);
     color: var(--text-color-primary);
-    overflow: hidden; /* Ẩn cuộn của body */
+    overflow: hidden; 
 }
 
 /* Bố cục chính: Sidebar + Main Chat */
@@ -33,7 +57,7 @@ body {
 /* --- 1. Sidebar --- */
 .sidebar {
     width: 260px;
-    background-color: var(--bg-sidebar);
+    background-color: var(--bg-sidebar); /* Tự động thay đổi */
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -41,8 +65,8 @@ body {
 
 .new-chat-button {
     background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color-primary);
+    border: 1px solid var(--border-color); /* Tự động thay đổi */
+    color: var(--text-color-primary); /* Tự động thay đổi */
     padding: 12px;
     border-radius: 5px;
     cursor: pointer;
@@ -50,7 +74,7 @@ body {
     text-align: left;
 }
 .new-chat-button:hover {
-    background-color: #202123;
+    background-color: var(--hover-color); /* THAY ĐỔI: Dùng biến */
 }
 
 .chat-history {
@@ -61,7 +85,7 @@ body {
 }
 
 .chat-history-item {
-    color: var(--text-color-primary);
+    color: var(--text-color-primary); /* Tự động thay đổi */
     text-decoration: none;
     padding: 10px;
     border-radius: 5px;
@@ -71,82 +95,149 @@ body {
     text-overflow: ellipsis;
 }
 .chat-history-item:hover {
-    background-color: #202123;
+    background-color: var(--hover-color); /* THAY ĐỔI: Dùng biến */
+}
+
+.sidebar-footer {
+    margin-top: auto; /* Đẩy nút xuống dưới cùng */
+    padding-top: 10px 0;
+}
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-color-secondary); /* Màu mặc định (không active) */
+}
+
+/* CSS cho icon mới */
+.theme-icon {
+    transition: color 0.3s ease; /* Hiệu ứng chuyển màu */
+}
+
+/* CSS cho icon khi active */
+.theme-icon.active {
+    color: var(--text-color-primary); /* Màu active (sáng hơn) */
+}
+
+/* CSS cho label (vỏ bọc của switch) */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px; 
+    height: 26px; 
+}
+
+/* Ẩn checkbox HTML gốc */
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* CSS cho thanh trượt (slider) - phần nền */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--switch-bg);
+    transition: .4s;
+    border-radius: 26px; 
+}
+
+/* CSS cho con trượt (slider) - phần núm */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; 
+    width: 20px; 
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%; 
+}
+
+/* CSS khi switch được check (Chế độ sáng) */
+input:checked + .slider {
+    background-color: var(--button-color); /* Màu xanh */
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px); /* Di chuyển núm sang phải */
 }
 
 
 /* --- 2. Main Chat Area --- */
 .main-chat {
-    flex-grow: 1; /* Chiếm hết phần còn lại */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: var(--bg-chat-window);
+    background-color: var(--bg-chat-window); /* Tự động thay đổi */
 }
 
 /* Cửa sổ chat */
 #chat-window {
-    flex-grow: 1; /* Lấp đầy không gian, đẩy form nhập xuống dưới */
+    flex-grow: 1; 
     overflow-y: auto;
     padding: 20px;
 }
 
-/* Định dạng tin nhắn (KHÁC HOÀN TOÀN) */
+/* Định dạng tin nhắn */
 .message {
     padding: 24px;
     display: flex;
-    align-items: flex-start; /* Căn icon và text lên trên */
-    gap: 15px; /* Khoảng cách giữa icon và text */
+    align-items: flex-start; 
+    gap: 15px; 
     margin: 0 auto;
     width: 100%;
-    max-width: 768px; /* Giới hạn chiều rộng tin nhắn */
+    max-width: 768px; 
 }
 
 .message.assistant {
-    background-color: var(--bg-assistant-message);
+    background-color: var(--bg-assistant-message); /* Tự động thay đổi */
 }
 
 .message-icon {
     width: 30px;
     height: 30px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0; /* Không bị co lại */
+    border-radius: 50%; 
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: var(--icon-bg-color); /* THAY ĐỔI: Dùng biến */
 }
 
-.message.user .message-icon {
-    background-color: #007aff; /* Màu xanh dương cho icon User */
-    color: white;
-}
-
-.message.assistant .message-icon {
-    background-color: var(--button-color); /* Màu xanh lá cho icon Bot */
-    color: white;
+.message-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .message-text {
     line-height: 1.6;
     font-size: 16px;
     word-wrap: break-word;
-    white-space: pre-wrap; /* Hiển thị xuống dòng */
+    white-space: pre-wrap; 
 }
 
 /* Khu vực nhập liệu */
 .chat-input-area {
     padding: 20px;
     padding-top: 10px;
-    background-color: var(--bg-chat-window);
-    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-chat-window); /* Tự động thay đổi */
+    border-top: 1px solid var(--border-color); /* Tự động thay đổi */
 }
 
 #chat-form {
     display: flex;
-    align-items: flex-end; /* Căn nút và textarea */
-    background-color: var(--bg-main);
-    border: 1px solid var(--border-color);
+    align-items: flex-end; 
+    background-color: var(--bg-main); /* Tự động thay đổi */
+    border: 1px solid var(--border-color); /* Tự động thay đổi */
     border-radius: 12px;
     padding: 10px;
     max-width: 768px;
@@ -158,18 +249,18 @@ body {
     border: none;
     outline: none;
     background-color: transparent;
-    color: var(--text-color-primary);
+    color: var(--text-color-primary); /* Tự động thay đổi */
     font-size: 16px;
     font-family: inherit;
-    resize: none; /* Tắt khả năng thay đổi kích thước thủ công */
-    height: 24px; /* Chiều cao ban đầu (1 dòng) */
+    resize: none; 
+    height: 24px; 
     line-height: 24px;
-    max-height: 200px; /* Giới hạn chiều cao */
+    max-height: 200px; 
     overflow-y: auto;
 }
 
 #send-button {
-    background-color: var(--button-color);
+    background-color: var(--button-color); /* Tự động thay đổi */
     color: white;
     border: none;
     border-radius: 8px;
@@ -183,14 +274,13 @@ body {
     margin-left: 8px;
 }
 #send-button:disabled {
-    background-color: #555;
+    background-color: var(--disabled-color); /* THAY ĐỔI: Dùng biến */
     cursor: not-allowed;
 }
 #send-button:hover:not(:disabled) {
     opacity: 0.8;
 }
 
-/* Icon bên trong nút gửi */
 #send-button svg {
     width: 16px;
     height: 16px;
@@ -200,6 +290,6 @@ body {
 .footer-text {
     text-align: center;
     font-size: 12px;
-    color: var(--text-color-secondary);
+    color: var(--text-color-secondary); /* Tự động thay đổi */
     margin-top: 10px;
 }

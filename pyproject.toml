@@ -1,7 +1,7 @@
 [project]
-name = "sales-ai-agent"
+name = "HCMUT-chatbot-ai-agent"
 version = "0.1.0"
-description = "Sales AI Agent"
+description = "HCMUT Chatbot AI Agent"
 authors = [
     {name = "leeduy0403",email = "lhduy2003@gmail.com"}
 ]
@@ -12,7 +12,7 @@ dependencies = [
     "python-dotenv (>=1.1.1,<2.0.0)",
     "loguru (>=0.7.3,<0.8.0)",
     "termcolor (>=3.1.0,<4.0.0)",
-    "litellm (>=1.78.2,<2.0.0)"
+    "litellm (>=1.78.2,<2.0.0)",
 ]
 
 
