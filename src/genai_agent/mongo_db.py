@@ -40,7 +40,6 @@ def get_database() -> motor.motor_asyncio.AsyncIOMotorDatabase:
         raise Exception("Database is not initialized. Call connect_to_mongo first.")
     return db.db
 
-def get_conversations_collection() -> motor.motor_asyncio.AsyncIOMotorCollection:
-    """Dependency để lấy collection 'conversations'."""
+def get_collection(name: str) -> motor.motor_asyncio.AsyncIOMotorCollection:
     db_instance = get_database()
-    return db_instance["conversations"]
+    return db_instance[name]
