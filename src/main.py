@@ -84,6 +84,17 @@ async def rename_conversation(
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return {"status": "ok", "message": "Title unchanged."}
 
+# DELETE /history/{thread_id} - xóa conversation
+@app.delete("/history/{thread_id}")
+async def delete_conversation(
+    thread_id: str,
+    collection: AsyncIOMotorCollection = Depends(lambda: conv_collection())
+):
+    result = await collection.delete_one({"thread_id": thread_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Không tìm thấy hội thoại.")
+    return {"status": "success", "message": "Conversation deleted."}
+
 # POST /chat - gửi message, lưu message vào conversation (create nếu chưa có)
 @app.post("/chat")
 async def chat(
