@@ -1,8 +1,8 @@
 :root {
     --bg-main: #212121;
     --bg-sidebar: #000000;
-    --bg-chat-window: #343541;
-    --bg-assistant-message: #444654;
+    --bg-chat-window: #1d1d1e;
+    --bg-assistant-message: #464749;
     --text-color-primary: #ECECEC;
     --text-color-secondary: #A9A9A9;
     --border-color: #555;
@@ -21,7 +21,7 @@ body.light-mode {
     --text-color-primary: #000000;
     --text-color-secondary: #555555;
     --border-color: #DDDDDD;
-    --button-color: #1676f4;
+    --button-color: #1d1d1e;
     --hover-color: #EEEEEE;
     --disabled-color: #CCCCCC;
     --icon-bg-color: #EEEEEE;
