@@ -1,0 +1,15 @@
+fastapi==0.120.3
+langchain_community==0.4.1
+langchain_core==1.0.2
+langchain_huggingface==1.0.0
+langchain_text_splitters==1.0.0
+langgraph==1.0.2
+litellm==1.79.0
+loguru==0.7.3
+motor==3.7.1
+openai==2.6.1
+pydantic==2.12.3
+python-dotenv==1.2.1
+scikit_learn==1.7.2
+termcolor==3.2.0
+uvicorn==0.38.0
