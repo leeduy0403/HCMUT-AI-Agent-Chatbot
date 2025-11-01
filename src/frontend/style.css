@@ -11,6 +11,7 @@
     --disabled-color: #555;
     --icon-bg-color: #555;
     --switch-bg: #ccc;
+    --dot-color: #FFFFFF;
 }
 
 body.light-mode {
@@ -21,11 +22,12 @@ body.light-mode {
     --text-color-primary: #000000;
     --text-color-secondary: #555555;
     --border-color: #DDDDDD;
-    --button-color: #1d1d1e;
+    --button-color: #000000;
     --hover-color: #EEEEEE;
     --disabled-color: #CCCCCC;
     --icon-bg-color: #EEEEEE;
     --switch-bg: var(--border-color);
+    --dot-color: #000000;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,6 +70,15 @@ body {
     padding-right: 6px;
 }
 
+/* wrapper for each item to position options */
+.history-item-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* anchor title (kept similar) */
 .chat-history-item {
     color: var(--text-color-primary);
     text-decoration: none;
@@ -77,13 +88,80 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: background-color 0.2s;
+    transition: background-color 0.15s;
+    flex: 1 1 auto;
+    display: inline-block;
 }
-.chat-history-item:hover { background-color: var(--hover-color); }
 
+.options-button {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-color-primary);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 6px;
+    border-radius: 6px;
+    opacity: 0; /* ẩn khi không hover */
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+/* show button when hover topic */
+.history-item-wrapper:hover .options-button {
+    opacity: 1;
+}
+
+/* không đổi màu khi hover vào nút ⋮ */
+.options-button:hover {
+    background: transparent;
+    color: var(--text-color-primary);
+}
+
+/* nếu topic đang active thì nút ⋮ cũng thành trắng */
+.chat-history-item.active + .options-button,
+.history-item-wrapper:has(.chat-history-item.active) .options-button {
+    color: white;
+}
+
+/* active selected */
 .chat-history-item.active {
     background-color: var(--button-color);
     color: white;
+}
+
+/* small dropdown menu */
+.options-menu {
+    position: absolute;
+    right: 6px;
+    top: 40%;
+    transform: translateY(-50%);
+    background-color: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    border-radius: 8px;
+    min-width: 120px;
+    z-index: 50;
+    overflow: hidden;
+    display: none; /* JS toggles display */
+}
+
+.options-menu .options-action {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-color-primary);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.options-menu .options-action:hover {
+    background-color: var(--hover-color);
 }
 
 /* rename input */
@@ -97,6 +175,7 @@ body {
     font-size: 14px;
 }
 
+/* rest of chat CSS (kept as before) */
 .sidebar-footer {
     margin-top: auto;
     padding: 10px 0;
@@ -110,17 +189,51 @@ body {
     color: var(--text-color-secondary);
 }
 
-.theme-icon { transition: color 0.3s ease; }
-.theme-icon.active { color: var(--text-color-primary); }
+.theme-icon { 
+    transition: color 0.3s ease; 
+}
+.theme-icon.active { 
+    color: var(--text-color-primary); 
+}
 
-.theme-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-.theme-switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--switch-bg); transition: .4s; border-radius: 26px; }
-.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: var(--button-color); }
-input:checked + .slider:before { transform: translateX(24px); }
+.theme-switch { 
+    position: relative; display: inline-block; width: 50px; height: 26px; 
+}
+.theme-switch input { 
+    opacity: 0; width: 0; height: 0; 
+}
+.slider { 
+    position: absolute; 
+    cursor: pointer; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background-color: var(--switch-bg); 
+    transition: .4s; 
+    border-radius: 26px; 
+}
+.slider:before 
+{ 
+    position: absolute; 
+    content: ""; 
+    height: 20px; 
+    width: 20px; 
+    left: 3px; 
+    bottom: 3px; 
+    background-color: white; 
+    transition: .4s; 
+    border-radius: 50%; 
+}
+input:checked + .slider 
+{ 
+    background-color: var(--button-color); 
+}
+input:checked + .slider:before 
+{ 
+    transform: translateX(24px); 
+}
 
-/* Main chat area */
 .main-chat {
     flex-grow: 1;
     display: flex;
@@ -135,7 +248,6 @@ input:checked + .slider:before { transform: translateX(24px); }
     padding: 20px;
 }
 
-/* Messages */
 .message {
     padding: 24px;
     display: flex;
@@ -168,7 +280,6 @@ input:checked + .slider:before { transform: translateX(24px); }
     white-space: pre-wrap;
 }
 
-/* Input area */
 .chat-input-area {
     padding: 20px;
     padding-top: 10px;
@@ -226,4 +337,68 @@ input:checked + .slider:before { transform: translateX(24px); }
     font-size: 12px;
     color: var(--text-color-secondary);
     margin-top: 10px;
+}
+
+/* === DELETE CONFIRM MODAL === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-box {
+    background-color: var(--bg-sidebar);
+    color: var(--text-color-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 24px 30px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-box h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-cancel {
+    background-color: var(--hover-color);
+    color: var(--text-color-primary);
+}
+
+.modal-delete {
+    background-color: #d93025;
+    color: #fff;
+}
+
+.modal-cancel:hover { opacity: 0.8; }
+.modal-delete:hover { opacity: 0.8; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
