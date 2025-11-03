@@ -5,10 +5,8 @@ import os
 
 load_dotenv(find_dotenv())
 
-# !!! THAY THẾ BẰNG CHUỖI KẾT NỐI CỦA BẠN TỪ BƯỚC 1 !!!
 MONGO_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
 
-# Đặt tên cho database của bạn
 DATABASE_NAME = "hcmut_chatbot_db"
 
 class MongoDB:
@@ -23,7 +21,7 @@ async def connect_to_mongo():
     try:
         db.client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_CONNECTION_STRING)
         db.db = db.client[DATABASE_NAME]
-        await db.client.admin.command('ping') # Kiểm tra kết nối
+        await db.client.admin.command('ping')
         print("✅ Connected to MongoDB successfully!")
     except Exception as e:
         print(f"❌ Could not connect to MongoDB: {e}")
