@@ -20,5 +20,11 @@ LLM_MODELS = {
     },
     "tuition_fee_subgraph": {
         "tuition_fee_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
-    }
+    },
+    "regulation_info_subgraph": {
+        "regulation_info_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    },
+    "graduate_subgraph":{
+        "graduate_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    },
 }
