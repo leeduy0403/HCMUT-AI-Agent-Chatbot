@@ -49,9 +49,32 @@ def conv_collection() -> AsyncIOMotorCollection:
 
 # GET /history - trả về danh sách các conversation (thread_id, title, created_at)
 @app.get("/history")
-async def get_history(collection: AsyncIOMotorCollection = Depends(lambda: conv_collection())):
-    history = await collection.find({}, {"thread_id": 1, "title": 1, "created_at": 1, "_id": 0})\
-                              .sort("created_at", -1).to_list(length=100)
+async def get_history(
+    collection: AsyncIOMotorCollection = Depends(lambda: get_collection("conversations"))
+):
+    """
+    Sử dụng Aggregation Pipeline để sắp xếp một cách mạnh mẽ.
+    Nó sẽ sắp xếp theo 'updated_at' nếu có, nếu không sẽ dùng 'created_at'.
+    """
+    pipeline = [
+        {
+            "$project": {
+                "thread_id": 1,
+                "title": 1,
+                "_id": 0,
+                "last_active_time": {
+                    "$ifNull": ["$updated_at", "$created_at"]
+                }
+            }
+        },
+        {
+            "$sort": {"last_active_time": -1}
+        }
+    ]
+    
+    history_cursor = collection.aggregate(pipeline)
+    history = await history_cursor.to_list(length=None)
+    
     return jsonable_encoder(history)
 
 # GET /history/{thread_id} - trả về toàn bộ conversation (kèm messages)
@@ -100,13 +123,12 @@ async def delete_conversation(
 async def chat(
     fastapi_request: Request,
     request: ChatRequest,
-    collection: AsyncIOMotorCollection = Depends(lambda: conv_collection())
+    collection: AsyncIOMotorCollection = Depends(lambda: get_collection("conversations"))
 ):
     agent_graph = fastapi_request.app.state.agent_graph
     if not agent_graph:
-        raise HTTPException(status_code=500, detail="Agent chưa được khởi tạo")
+        return {"error": "Agent chưa được khởi tạo"}, 500
 
-    # Prepare input for agent (adjust per your agent API)
     inputs = {
         "messages": [
             HumanMessage(
@@ -118,47 +140,39 @@ async def chat(
     config = {"configurable": {"thread_id": request.thread_id}}
 
     try:
-        # If your agent_graph.invoke is async, await it. The original code used synchronous invoke.
         response_state = agent_graph.invoke(inputs, config=config)
         ai_reply = response_state.get('ai_reply', None)
         ai_content = ai_reply.content if ai_reply else "Dạ, có vẻ đã xảy ra lỗi. Xin Anh/Chị thử lại."
 
-        # Prepare message docs
-        now = datetime.now()
-        user_message_doc = {"sender": "user", "content": request.message, "timestamp": now}
-        assistant_message_doc = {"sender": "assistant", "content": ai_content, "timestamp": now}
+        user_message_doc = {"sender": "user", "content": request.message, "timestamp": datetime.now()}
+        assistant_message_doc = {"sender": "assistant", "content": ai_content, "timestamp": datetime.now()}
 
-        # Ensure conversation exists; if not, create with a default title (first 5 words)
         existing_convo = await collection.find_one({"thread_id": request.thread_id}, {"title": 1})
-        if not existing_convo:
-            default_title = " ".join(request.message.split()[:5]) or "Cuộc trò chuyện mới"
-            # Create a new document
-            doc = {
-                "thread_id": request.thread_id,
-                "title": default_title,
-                "created_at": now,
-                "messages": [user_message_doc, assistant_message_doc]
-            }
-            await collection.insert_one(doc)
-        else:
-            # Append messages to existing conversation
-            await collection.update_one(
-                {"thread_id": request.thread_id},
-                {"$push": {"messages": {"$each": [user_message_doc, assistant_message_doc]}}}
-            )
+        
+        # Bắt đầu tài liệu cập nhật (update_doc)
+        update_doc = {
+            "$push": {"messages": {"$each": [user_message_doc, assistant_message_doc]}},
+            # $set: Cập nhật 'updated_at' mỗi khi có tin nhắn mới
+            "$set": {"updated_at": datetime.now()},
+            # $setOnInsert: Chỉ đặt các giá trị này khi tạo mới
+            "$setOnInsert": {"thread_id": request.thread_id, "created_at": datetime.now()}
+        }
+        
+        # Nếu chưa có title (tin nhắn đầu tiên), thêm 'title' vào $set
+        if not existing_convo or "title" not in existing_convo:
+            default_title = " ".join(request.message.split()[:5])
+            update_doc["$set"]["title"] = default_title
 
-        return {
-        "content": ai_content,
-        "thread_id": request.thread_id,
-        "title": existing_convo["title"] if existing_convo and "title" in existing_convo 
-                else " ".join(request.message.split()[:5]) or "Cuộc trò chuyện mới",
-        "created_at": datetime.now().isoformat()
-    }
+        await collection.find_one_and_update(
+            {"thread_id": request.thread_id}, update_doc, upsert=True
+        )
+
+        return {"content": ai_content}
 
     except Exception as e:
         print(f"Lỗi nghiêm trọng: {e}")
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Lỗi máy chủ")
+        return {"error": "Lỗi máy chủ"}, 500
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

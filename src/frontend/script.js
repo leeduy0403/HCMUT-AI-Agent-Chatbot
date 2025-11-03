@@ -327,17 +327,15 @@ async function handleChatSubmit(event) {
         const data = await response.json();
         if (data.content) addMessage(data.content, 'assistant');
         else addMessage(`Lỗi: ${data.error || 'Không nhận được phản hồi'}`, 'assistant');
+        
+        const existingElementWrapper = document.querySelector(`.history-item-wrapper[data-thread-id="${currentThreadId}"]`);
 
-        if (!document.querySelector(`[data-thread-id="${currentThreadId}"]`)) {
-            const el = buildConversationElement({
-                thread_id: data.thread_id || currentThreadId,
-                title: data.title || userMessage.slice(0, 40) || 'Cuộc trò chuyện mới'
-            });
-            document.querySelectorAll('.chat-history-item').forEach(i => i.classList.remove('active'));
-            el.querySelector('.chat-history-item').classList.add('active');
-            chatHistoryContainer.prepend(el);
+        if (!existingElementWrapper) {
+            await loadChatHistory(); 
         } else {
-            await loadChatHistory();
+            if (chatHistoryContainer.firstChild !== existingElementWrapper) {
+                chatHistoryContainer.prepend(existingElementWrapper);
+            }
         }
 
         switchConversation(currentThreadId);
