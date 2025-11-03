@@ -5,10 +5,8 @@ import os
 
 load_dotenv(find_dotenv())
 
-# !!! THAY THẾ BẰNG CHUỖI KẾT NỐI CỦA BẠN TỪ BƯỚC 1 !!!
 MONGO_CONNECTION_STRING = os.getenv("MONGO_DB_CONNECTION_STRING")
 
-# Đặt tên cho database của bạn
 DATABASE_NAME = "hcmut_chatbot_db"
 
 class MongoDB:
