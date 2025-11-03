@@ -10,6 +10,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv, find_dotenv
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+from hybrid_helpers import convert_to_pinecone_sparse_vector
+
 # Configuration
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = 50
@@ -22,16 +26,24 @@ load_dotenv(find_dotenv())
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_MODEL = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- 2. Define your data "topics" and their paths ---
+TFIDF_SAVE_DIR = os.path.join(SCRIPT_DIR, "tfidf_models")
+
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+
+KB_ROOT = os.path.join(PROJECT_ROOT, "BKU_KB", "BKU_KB")
+
+
 TOPIC_PATHS = {
-    "all": "D:/HCMUT-AI-Agent-Chatbot/BKU_KB/BKU_KB"
-}    #"uni_info": "D:\HCMUT-AI-Agent-Chatbot\BKU_KB\BKU_KB\uni_info", 
-    #"graduate": "D:\HCMUT-AI-Agent-Chatbot\BKU_KB\BKU_KB\graduate",
-    #"undergraduate": "D:\HCMUT-AI-Agent-Chatbot\BKU_KB\BKU_KB\undergraduate",
+    "graduate": os.path.join(KB_ROOT, "graduate"),
+    "tuition_fee": os.path.join(KB_ROOT, "tuition_fee"),
+    "regulation_info": os.path.join(KB_ROOT, "regulation_info")
+
+}
 
 
-# --- 3. Pinecone Client ---
+# Pinecone Client 
 try:
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
     index_name = os.getenv("PINECONE_INDEX_NAME")
@@ -42,14 +54,13 @@ try:
         pc.create_index(
             name=index_name,
             dimension=384,  # dimension for all-MiniLM-L6-v2
-            metric="cosine",
+            metric="dotproduct",
             
             # --- THIS IS THE FIX ---
             spec=ServerlessSpec(
                 cloud="aws",
                 region="us-east-1"
             )
-            # --- END OF FIX ---
         )
         print(f"Created new Pinecone index: {index_name}")
     else:
@@ -88,7 +99,7 @@ def upload_topic(topic_tag: str, doc_path: str):
             print(f"No supported documents found in {doc_path}. Skipping.")
             return
 
-        # 2. Add metadata *before* splitting
+        # 2. Add metadata before splitting
         for doc in documents:
             doc.metadata.update({
                 "topic": topic_tag,
@@ -106,6 +117,19 @@ def upload_topic(topic_tag: str, doc_path: str):
             )
             chunks = text_splitter.split_documents(documents)
             print(f"Found {len(documents)} docs, split into {len(chunks)} chunks.")
+            print(f"Fitting TF-IDF model for topic: {topic_tag}...")
+            texts = [chunk.page_content for chunk in chunks]
+            vectorizer = TfidfVectorizer()
+            tfidf_matrix = vectorizer.fit_transform(texts)
+            
+            vectorizer_path = os.path.join(TFIDF_SAVE_DIR, f"{topic_tag}_tfidf.joblib")
+            
+            # Create the directory if it doesn't exist
+            os.makedirs(TFIDF_SAVE_DIR, exist_ok=True)
+
+            joblib.dump(vectorizer, vectorizer_path)
+            print(f"Saved TF-IDF model to {vectorizer_path}")
+        
         except Exception as e:
             print(f"Error splitting documents: {str(e)}")
             return
@@ -143,15 +167,22 @@ def upload_topic(topic_tag: str, doc_path: str):
         # Store the text content IN the metadata
             metadata = chunk.metadata
             metadata['page_content'] = chunk.page_content
+
+            vector_to_upload = {
+            "id": vector_id,
+            "values": vectors[i],
+            "metadata": metadata
+        }
+        # Sparse vector for the chunk   
+            sparse_row = tfidf_matrix.getrow(i)
+            pinecone_sparse = convert_to_pinecone_sparse_vector(sparse_row)
+            if pinecone_sparse:
+                vector_to_upload["sparse_values"] = pinecone_sparse
         
-            vectors_to_upsert.append({
-                "id": vector_id,
-                "values": vectors[i],
-                "metadata": metadata
-        })
+            vectors_to_upsert.append(vector_to_upload)
 
     # 6. Upload to Pinecone in batches
-        print(f"Uploading {len(vectors_to_upsert)} vectors to Pinecone...")
+        print(f"Uploading {len(vectors_to_upsert)} hybrid vectors to Pinecone...")
         batch_size = 100
         for i in range(0, len(vectors_to_upsert), batch_size):
             batch = vectors_to_upsert[i:i + batch_size]

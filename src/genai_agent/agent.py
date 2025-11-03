@@ -11,6 +11,7 @@ from .subgraphs.uni_info_subgraph import build_uni_info_subgraph
 from .subgraphs.undergraduate_subgraph import build_undergraduate_subgraph
 from .subgraphs.graduate_subgraph import build_graduate_subgraph
 from .subgraphs.tuition_fee_subgraph import build_tuition_fee_subgraph
+from .subgraphs.regulation_info_subgraph import build_regulation_info_subgraph
 from langgraph.checkpoint.memory import MemorySaver
 
 
@@ -22,7 +23,8 @@ SUBGRAPH_PATH_MAP = {
     'university_info': 'uni_info_subgraph',
     'undergraduate_info': 'undergraduate_subgraph',
     'graduate_info': 'graduate_subgraph',
-    'tuition_fee_info': 'tuition_fee_subgraph'
+    'tuition_fee_info': 'tuition_fee_subgraph',
+    'regulation_info': 'regulation_info_subgraph'
 }
 
 def build_graph():
@@ -35,6 +37,7 @@ def build_graph():
     graph.add_node("undergraduate_subgraph", build_undergraduate_subgraph())
     graph.add_node("graduate_subgraph", build_graduate_subgraph())
     graph.add_node("tuition_fee_subgraph", build_tuition_fee_subgraph())
+    graph.add_node("regulation_info_subgraph", build_regulation_info_subgraph())
     # graph.add_node("do_nothing_node", do_nothing_node)
 
     graph.set_entry_point("router_node") # START -> router_node
