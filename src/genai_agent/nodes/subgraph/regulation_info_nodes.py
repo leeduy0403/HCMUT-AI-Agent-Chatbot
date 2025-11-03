@@ -74,6 +74,9 @@ def regulation_info_node(state: AgentState):
             context = "\n\n".join(m['content'] for m in matches)
             logger.info(f"Retrieved {len(matches)} reranked matches with scores: " +
                         ", ".join(f"{m['score']:.3f}" for m in matches))
+            
+        logger.debug(f"--- CONTEXT SẼ GỬI ĐẾN LLM ---\n{context}\n--- HẾT CONTEXT ---")
+
     except Exception as e:
         logger.error(f"❌ Error during RAG query: {e}")
         context = "Lỗi: Không thể truy xuất thông tin về các quy định."
