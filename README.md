@@ -39,8 +39,8 @@ The project is developed with modern technologies, focusing on **Python** for th
 ---
 
 ## 🚀 Demo
-    ![Dark Theme](imgs/1.png)
-    ![Light Theme](imgs/2.png)
+![Dark Theme](imgs/1.png)
+![Light Theme](imgs/2.png)
 
 
 ## 🔧 Deploy soon...
