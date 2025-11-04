@@ -71,6 +71,8 @@ def tuition_fee_node(state: AgentState):
             logger.info(f"Retrieved {len(matches)} reranked matches with scores: " +
                         ", ".join(f"{m['score']:.3f}" for m in matches))
             
+        logger.debug(f"--- CONTEXT SẼ GỬI ĐẾN LLM ---\n{context}\n--- HẾT CONTEXT ---")
+            
     except Exception as e:
         logger.error(f"❌ Error during RAG query: {e}")
         context = "Lỗi: Không thể truy xuất thông tin học phí."

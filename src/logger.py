@@ -9,8 +9,10 @@ logger.remove()
 logger.add(
     sys.stdout,
     format = "{time:YYYY-MM-DD HH:mm:ss} | <level>{level}</level>\n<level>{message}</level>",
+    level="DEBUG",
 )
 
 logger.add(
-    os.path.join(APP_ROOT_PATH, "logs", f"log_{datetime.now().strftime('%Y-%m-%d')}.log")
+    os.path.join(APP_ROOT_PATH, "logs", f"log_{datetime.now().strftime('%Y-%m-%d')}.log",),
+    level="INFO"
 )
