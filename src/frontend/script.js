@@ -8,6 +8,10 @@ const chatHistoryContainer = document.getElementById('chat-history');
 const themeSwitch = document.getElementById('theme-switch-checkbox');
 const moonIcon = document.getElementById('moon-icon');
 const sunIcon = document.getElementById('sun-icon');
+const appLayout = document.querySelector('.app-layout');
+const sidebarToggleButton = document.getElementById('sidebar-toggle-button'); 
+const toggleSidebarCollapsedButton = document.getElementById('toggle-sidebar-collapsed'); 
+// const newChatCollapsedButton = document.getElementById('new-chat-collapsed'); 
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 let currentThreadId = null;
@@ -349,6 +353,22 @@ async function handleChatSubmit(event) {
     }
 }
 
+function setupSidebarToggle() {
+    if (!sidebarToggleButton || !appLayout) return;
+
+    // 1. Tải trạng thái đã lưu khi mở trang
+    const isCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+    appLayout.classList.toggle('sidebar-collapsed', isCollapsed);
+
+    // 2. Thêm sự kiện click
+    sidebarToggleButton.addEventListener('click', () => {
+        appLayout.classList.toggle('sidebar-collapsed');
+        // 3. Lưu trạng thái mới vào localStorage
+        const isCurrentlyCollapsed = appLayout.classList.contains('sidebar-collapsed');
+        localStorage.setItem('sidebar_collapsed', isCurrentlyCollapsed);
+    });
+}
+
 /* -------------------------------
    Theme setup + Initialization
    ------------------------------- */
@@ -368,6 +388,7 @@ function setupTheme() {
 
 document.addEventListener('DOMContentLoaded', () => {
     setupTheme();
+    setupSidebarToggle();
     chatForm.addEventListener('submit', handleChatSubmit);
     newChatButton.addEventListener('click', handleNewChat);
     chatInput.addEventListener('keydown', (e) => {

@@ -12,6 +12,8 @@
     --icon-bg-color: #555;
     --switch-bg: #ccc;
     --dot-color: #FFFFFF;
+    --sidebar-transition-time: 0.3s;
+    --sidebar-collapsed-width: 60px;
 }
 
 body.light-mode {
@@ -43,16 +45,55 @@ body {
 
 .sidebar {
     width: 260px;
-    background-color: var(--bg-sidebar);
+    background-color: var(--bg-sidebar); 
     padding: 10px;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0; 
+    transition: width var(--sidebar-transition-time) ease, 
+                padding var(--sidebar-transition-time) ease;
+    z-index: 10;
+}
+
+.app-layout.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+    padding: 10px 0;
+}
+
+.app-layout.sidebar-collapsed .sidebar > *:not(.sidebar-header) {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--sidebar-transition-time) ease, visibility var(--sidebar-transition-time) ease;
+}
+
+.app-layout.sidebar-collapsed .sidebar .sidebar-header {
+    justify-content: center; 
+    padding-right: 0; 
+    transition: all var(--sidebar-transition-time) ease;
+}
+
+
+.app-layout.sidebar-collapsed .sidebar .sidebar-header .new-chat-button {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    margin-right: 0; 
+    transition: width var(--sidebar-transition-time) ease, opacity var(--sidebar-transition-time) ease, padding var(--sidebar-transition-time) ease;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+    margin-bottom: 20px;
 }
 
 .new-chat-button {
+    flex-grow: 1; /* Cho phép nút này chiếm hết không gian */
     background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color-primary);
+    border: 1px solid var(--border-color); 
+    color: var(--text-color-primary); 
     padding: 12px;
     border-radius: 5px;
     cursor: pointer;
@@ -61,8 +102,25 @@ body {
 }
 .new-chat-button:hover { background-color: var(--hover-color); }
 
+.icon-button {
+    flex-shrink: 0; /* Ngăn nút này bị co lại */
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color-primary);
+    width: 44px; /* Kích thước vuông */
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.icon-button:hover {
+    background-color: var(--hover-color);
+}
+
 .chat-history {
-    margin-top: 20px;
+    /* margin-top: 20px; */
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -240,6 +298,10 @@ input:checked + .slider:before
     flex-direction: column;
     height: 100vh;
     background-color: var(--bg-chat-window);
+}
+
+.app-layout.sidebar-collapsed .main-chat {
+    margin-left: 0; 
 }
 
 #chat-window {
