@@ -10,10 +10,10 @@
     --hover-color: #202123;
     --disabled-color: #555;
     --icon-bg-color: #555;
-    --switch-bg: #ccc;
+    --switch-bg: #1676f4;
     --dot-color: #FFFFFF;
     --sidebar-transition-time: 0.3s;
-    --sidebar-collapsed-width: 60px;
+    --sidebar-collapsed-width: 120px;
 }
 
 body.light-mode {
@@ -57,10 +57,10 @@ body {
 
 .app-layout.sidebar-collapsed .sidebar {
     width: var(--sidebar-collapsed-width);
-    padding: 10px 0;
+    padding: 10px;
 }
 
-.app-layout.sidebar-collapsed .sidebar > *:not(.sidebar-header) {
+.app-layout.sidebar-collapsed .sidebar > *:not(.sidebar-header, .sidebar-footer) {
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--sidebar-transition-time) ease, visibility var(--sidebar-transition-time) ease;
@@ -68,18 +68,7 @@ body {
 
 .app-layout.sidebar-collapsed .sidebar .sidebar-header {
     justify-content: center; 
-    padding-right: 0; 
     transition: all var(--sidebar-transition-time) ease;
-}
-
-
-.app-layout.sidebar-collapsed .sidebar .sidebar-header .new-chat-button {
-    width: 0;
-    opacity: 0;
-    overflow: hidden;
-    padding: 0;
-    margin-right: 0; 
-    transition: width var(--sidebar-transition-time) ease, opacity var(--sidebar-transition-time) ease, padding var(--sidebar-transition-time) ease;
 }
 
 .sidebar-header {
@@ -87,36 +76,26 @@ body {
     align-items: center;
     gap: 10px; 
     margin-bottom: 20px;
+    padding: 10px;
 }
 
-.new-chat-button {
-    flex-grow: 1; /* Cho phép nút này chiếm hết không gian */
-    background-color: transparent;
-    border: 1px solid var(--border-color); 
-    color: var(--text-color-primary); 
-    padding: 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    text-align: left;
-}
-.new-chat-button:hover { background-color: var(--hover-color); }
-
-.icon-button {
+.new-chat-button, .icon-button {
     flex-shrink: 0; /* Ngăn nút này bị co lại */
     background-color: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-color-primary);
-    width: 44px; /* Kích thước vuông */
-    height: 44px;
+    width: 40px; /* Kích thước vuông */
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
     cursor: pointer;
 }
-.icon-button:hover {
-    background-color: var(--hover-color);
+.new-chat-button:hover, .icon-button:hover { background-color: var(--hover-color); }
+
+.mobile-topic-display {
+    display: none;
 }
 
 .chat-history {
@@ -343,8 +322,7 @@ input:checked + .slider:before
 }
 
 .chat-input-area {
-    padding: 20px;
-    padding-top: 10px;
+    padding: 10px 20px;
     background-color: var(--bg-chat-window);
     border-top: 1px solid var(--border-color);
 }
@@ -463,4 +441,120 @@ input:checked + .slider:before
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
+}
+
+/* Responsive adjustments */
+/* === Responsive Styles (Top-Bar with Dropdown on Mobile) === */
+@media (max-width: 768px) {
+
+    /* 1. Thay đổi layout chính thành cột */
+    .app-layout {
+        flex-direction: column;
+    }
+
+    /* 2. Biến sidebar thành top-bar và làm "context" cho dropdown */
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between; 
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border-color);
+        position: relative; 
+        z-index: 10;
+        
+        transform: none;
+        /* Thêm 'width' vào transition để nó mượt hơn nếu bạn
+           vẫn muốn giữ hiệu ứng co giãn trên desktop */
+        transition: width var(--sidebar-transition-time) ease, 
+                    padding var(--sidebar-transition-time) ease;
+    }
+
+    /* 3. Căn chỉnh các mục bên trong top-bar */
+    .sidebar-header, .sidebar-footer {
+        margin: 0;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    /* 4. Định vị và ẩn menu lịch sử chat (dropdown) */
+    .chat-history {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%; /* Dropdown luôn rộng 100% */
+
+        background-color: var(--bg-sidebar);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        padding: 10px;
+        
+        flex-direction: column;
+        
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        visibility: hidden;
+        transition: max-height 0.35s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    
+    /* 5. HIỂN THỊ dropdown KHI NHẤN NÚT */
+    .app-layout.sidebar-collapsed .sidebar > .chat-history {
+        max-height: 40vh;
+        opacity: 1;
+        visibility: visible;
+        overflow-y: auto;
+    }
+
+    /* 6. Điều chỉnh khu vực chat chính */
+    .main-chat {
+        flex-grow: 1;
+        height: auto;
+    }
+    
+    /* 7. Tinh chỉnh padding cho nội dung chat trên di động */
+    #chat-window, .chat-input-area {
+        padding: 10px;
+    }
+
+    .message {
+        padding: 12px;
+        max-width: 100%;
+    }
+
+    #chat-form {
+        max-width: 100%;
+    }
+
+    .modal-box {
+        width: 90%;
+    }
+
+    .app-layout.sidebar-collapsed .sidebar {
+        width: 100%;      /* Buộc giữ 100% */
+        padding: 8px 10px; /* Giữ nguyên padding của mobile */
+    }
+
+    .mobile-topic-display {
+    display: block; /* Hiện nó ra */
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-color-primary);
+    
+    /* Chiếm không gian còn lại */
+    flex-grow: 1; 
+    padding: 0 10px; /* Khoảng cách */
+
+    /* Ngăn text bị tràn và hiện dấu ... */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    /* Đảm bảo header có đủ không gian */
+    .sidebar-header {
+        flex-grow: 1; /* Cho phép header chiếm không gian */
+        min-width: 0; /* Cần thiết cho text-overflow ellipsis */
+    }
 }

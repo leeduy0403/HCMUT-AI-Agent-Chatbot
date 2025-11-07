@@ -10,11 +10,51 @@ const moonIcon = document.getElementById('moon-icon');
 const sunIcon = document.getElementById('sun-icon');
 const appLayout = document.querySelector('.app-layout');
 const sidebarToggleButton = document.getElementById('sidebar-toggle-button'); 
-const toggleSidebarCollapsedButton = document.getElementById('toggle-sidebar-collapsed'); 
-// const newChatCollapsedButton = document.getElementById('new-chat-collapsed'); 
+const toggleSidebarCollapsedButton = document.getElementById('toggle-sidebar-collapsed');
+const mobileTopicDisplay = document.querySelector('.mobile-topic-display');
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 let currentThreadId = null;
+
+function updateMobileTopicDisplay() {
+    // Chỉ chạy nếu tìm thấy span (trên desktop sẽ không có)
+    if (!mobileTopicDisplay) return;
+
+    // Tìm topic đang có class .active
+    const activeTopic = chatHistoryList.querySelector('.chat-history-item.active');
+    
+    if (activeTopic) {
+        mobileTopicDisplay.textContent = activeTopic.textContent;
+    } else {
+        // Nếu không có gì active, mặc định là "New Chat"
+        mobileTopicDisplay.textContent = "New Chat";
+    }
+}
+
+// Đóng menu dropdown responsive
+function closeMobileDropdown() {
+    if (window.innerWidth <= 768) {
+        appLayout.classList.remove('sidebar-collapsed');
+    }
+}
+newChatButton.addEventListener('click', function() {
+    if (mobileTopicDisplay) {
+        // Cập nhật text thành "New Chat"
+        mobileTopicDisplay.textContent = "New Chat";
+    }
+    closeMobileDropdown(); // Đóng menu
+});
+chatHistoryContainer.addEventListener('click', function(event) {
+    const clickedTopic = event.target.closest('.chat-history-item');
+    
+    if (clickedTopic) {
+        if (mobileTopicDisplay) {
+            // Cập nhật text bằng nội dung của topic
+            mobileTopicDisplay.textContent = clickedTopic.textContent;
+        }
+        closeMobileDropdown(); // Đóng menu
+    }
+});
 
 /* -------------------------------
    Theme helpers
@@ -406,3 +446,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     loadMessagesForThread(currentThreadId);
 });
+
+document.addEventListener('click', function(event) {
+    const isMobile = window.innerWidth <= 768;
+    const isMenuOpen = appLayout.classList.contains('sidebar-collapsed');
+
+    if (isMobile && isMenuOpen) {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && !sidebar.contains(event.target)) {
+            closeMobileDropdown();
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', updateMobileTopicDisplay);
