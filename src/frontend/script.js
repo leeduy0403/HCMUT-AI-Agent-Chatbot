@@ -12,6 +12,9 @@ const appLayout = document.querySelector('.app-layout');
 const sidebarToggleButton = document.getElementById('sidebar-toggle-button'); 
 const toggleSidebarCollapsedButton = document.getElementById('toggle-sidebar-collapsed');
 const mobileTopicDisplay = document.querySelector('.mobile-topic-display');
+const micButton = document.getElementById('mic-button');
+// const chatInputText = document.getElementById('chat-input');
+
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 let currentThreadId = null;
@@ -21,12 +24,11 @@ function updateMobileTopicDisplay() {
     if (!mobileTopicDisplay) return;
 
     // Tìm topic đang có class .active
-    const activeTopic = chatHistoryList.querySelector('.chat-history-item.active');
+    const activeTopic = chatHistoryContainer.querySelector('.chat-history-item.active');
     
     if (activeTopic) {
         mobileTopicDisplay.textContent = activeTopic.textContent;
     } else {
-        // Nếu không có gì active, mặc định là "New Chat"
         mobileTopicDisplay.textContent = "New Chat";
     }
 }
@@ -214,6 +216,7 @@ async function loadChatHistory() {
             }
             chatHistoryContainer.appendChild(el);
         });
+        updateMobileTopicDisplay();
     } catch (error) {
         console.error("Lỗi khi tải lịch sử chat:", error);
     }
@@ -426,9 +429,76 @@ function setupTheme() {
     updateThemeIcons(savedTheme);
 }
 
+function setupSpeechRecognition() {
+    // Kiểm tra xem trình duyệt có hỗ trợ không
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        if (micButton) {
+            micButton.style.display = 'none'; // Ẩn nút nếu không hỗ trợ
+            console.warn("Trình duyệt không hỗ trợ Web Speech API.");
+        }
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false; // Dừng sau khi nói xong 1 câu
+    recognition.interimResults = true; // Hiển thị kết quả tạm thời khi đang nói
+    recognition.lang = 'vi-VN'; // Đặt ngôn ngữ là Tiếng Việt
+
+    let isListening = false;
+
+    if (micButton) {
+        micButton.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+    }
+
+    recognition.onstart = () => {
+        isListening = true;
+        micButton.classList.add('listening');
+        chatInput.setAttribute('placeholder', 'Đang nghe... (hãy nói gì đó)');
+    };
+
+    recognition.onend = () => {
+        isListening = false;
+        micButton.classList.remove('listening');
+        chatInput.setAttribute('placeholder', 'Nhập câu hỏi...');
+        // Tự động điều chỉnh độ cao nếu nội dung dài
+        chatInput.style.height = 'auto';
+        chatInput.style.height = (chatInput.scrollHeight) + 'px';
+        chatInput.focus();
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+            .map(result => result[0])
+            .map(result => result.transcript)
+            .join('');
+
+        // Điền văn bản vào ô nhập liệu
+        chatInput.value = transcript;
+        
+        // (Tùy chọn) Nếu muốn tự động gửi khi nói xong:
+        // if (event.results[0].isFinal) { handleChatSubmit(new Event('submit')); }
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Lỗi nhận diện giọng nói:", event.error);
+        micButton.classList.remove('listening');
+        if (event.error === 'not-allowed') {
+            alert("Vui lòng cấp quyền truy cập micro để sử dụng tính năng này.");
+        }
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setupTheme();
     setupSidebarToggle();
+    setupSpeechRecognition();
     chatForm.addEventListener('submit', handleChatSubmit);
     newChatButton.addEventListener('click', handleNewChat);
     chatInput.addEventListener('keydown', (e) => {
@@ -438,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     chatInput.addEventListener('input', () => {
-        chatInput.style.height = 'auto';
+        chatInput.style.height = '30px';
         chatInput.style.height = (chatInput.scrollHeight) + 'px';
     });
 
@@ -459,4 +529,3 @@ document.addEventListener('click', function(event) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', updateMobileTopicDisplay);
