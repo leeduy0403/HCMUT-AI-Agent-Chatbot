@@ -4,7 +4,10 @@ This project introduces an **AI Chatbot (AI Agent)** developed to provide offici
 The system is designed to handle student and visitor queries regarding **admissions, academic affairs, scholarships, and campus facilities**, offering a natural and interactive conversational experience.
 
 ---
+## 🔧 RAG Flowchart
+![Dark Theme](imgs/flowchart.png)
 
+---
 ## ✨ Key Features
 
 The chatbot is built to support natural human–computer interaction and can perform the following core functions:
