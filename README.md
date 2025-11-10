@@ -46,6 +46,52 @@ The project is developed with modern technologies, focusing on **Python** for th
 ![Light Theme](imgs/2.png)
 
 
-## 🔧 Deploy soon...
+## 🔧 Installation
+
+### 1. Prerequisites
+
+- Docker & Docker-Compose installed
+
+- Python 3.11+ (if running locally without Docker)
+
+### 4.2 Quick Start with Docker
+
+```bash
+
+git clone https://github.com/leeduy0403/HCMUT-AI-Agent-Chatbot.git
+
+docker compose up --build
+
+```
+
+#### Access:
+
+- Backend API: http://localhost:8000/docs
+
+- Frontend: http://localhost:8080
+
+### 4.3 Run without Docker (Optional)
+
+#### Run Backend API
+
+```bash
+
+pip install -r requirements.txt
+
+cd src
+
+python main.py
+
+```
+
+#### Run Frontend
+
+```bash
+
+cd src/frontend
+
+python -m http.server 8080
+
+```
 
 

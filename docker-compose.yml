@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Dịch vụ 1: Backend Python
+  backend:
+    build: .
+    container_name: chatbot_backend
+    ports:
+      - "8000:8000" # Map port 8000 của máy thật vào port 8000 của container
+    # environment:
+      # Nếu app cần API Key, hãy điền vào đây
+    volumes:
+      - .:/app # (Tùy chọn) Đồng bộ code để dev, sửa code bên ngoài là bên trong tự cập nhật
+    env_file:
+      - .env
+
+  # Dịch vụ 2: Frontend Nginx
+  frontend:
+    image: nginx:alpine
+    container_name: chatbot_frontend
+    ports:
+      - "8080:80" # Web sẽ chạy ở http://localhost:8080
+    volumes:
+      # Mount thư mục frontend của bạn vào thư mục phục vụ web của Nginx
+      - ./src/frontend:/usr/share/nginx/html
+    depends_on:
+      - backend # Frontend sẽ chỉ chạy sau khi backend đã khởi động
