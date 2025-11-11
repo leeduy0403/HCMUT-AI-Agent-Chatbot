@@ -1,6 +1,8 @@
 import uvicorn
 import traceback
+import io
 from fastapi import FastAPI, Response, Depends, Request, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -10,6 +12,10 @@ from genai_agent.agent import build_graph
 from genai_agent.mongo_db import connect_to_mongo, close_mongo_connection, get_collection
 from motor.motor_asyncio import AsyncIOMotorCollection
 from langchain_core.messages import HumanMessage
+from openai import AsyncOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class RenameRequest(BaseModel):
     new_title: str
@@ -18,10 +24,14 @@ class ChatRequest(BaseModel):
     message: str
     thread_id: str
 
+class SpeakRequest(BaseModel):
+    text: str
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Running startup procedures...")
     await connect_to_mongo()
+    app.state.openai_client = AsyncOpenAI()
     try:
         app.state.agent_graph = build_graph()
         print("✅ LangGraph agent compiled successfully!")
@@ -31,6 +41,7 @@ async def lifespan(app: FastAPI):
     yield
     print("Running shutdown procedures...")
     await close_mongo_connection()
+    await app.state.openai_client.close()
 
 app = FastAPI(
     title="HCMUT Chatbot Server",
@@ -173,6 +184,34 @@ async def chat(
         print(f"Lỗi nghiêm trọng: {e}")
         traceback.print_exc()
         return {"error": "Lỗi máy chủ"}, 500
+
+@app.post("/speak")
+async def speak(
+    fastapi_request: Request,
+    request: SpeakRequest
+):
+    """
+    Nhận văn bản và trả về file âm thanh MP3 từ OpenAI.
+    """
+    try:
+        client = fastapi_request.app.state.openai_client
+        
+        # Gọi API OpenAI TTS
+        # Model 'tts-1' tự động nhận diện ngôn ngữ
+        response = await client.audio.speech.create(
+            model="tts-1",
+            voice="alloy", # (alloy, echo, fable, onyx, nova, shimmer)
+            input=request.text,
+            response_format="mp3"
+        )
+
+        # Stream file MP3 về trình duyệt
+        return StreamingResponse(io.BytesIO(response.content), media_type="audio/mpeg")
+
+    except Exception as e:
+        print(f"Lỗi khi tạo audio: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Không thể tạo file âm thanh.")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

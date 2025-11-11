@@ -301,6 +301,7 @@ input:checked + .slider:before
 
 .message.assistant {
     background-color: var(--bg-assistant-message);
+    position: relative;
 }
 
 .message-icon {
@@ -475,6 +476,40 @@ input:checked + .slider:before
     color: white;
     background-color: #ea4335; /* Màu đỏ Google */
     animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* ===== CSS CHO NÚT TEXT-TO-SPEECH ===== */
+.tts-button {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-color-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.4; /* Hơi mờ đi */
+    transition: all 0.2s ease;
+}
+
+.tts-button:hover {
+    opacity: 1; /* Rõ lên khi hover */
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.tts-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Đảm bảo nút không che mất văn bản */
+.message.assistant .message-text {
+    padding-right: 30px; /* Thêm khoảng đệm bên phải cho văn bản */
 }
 
 @keyframes pulse {

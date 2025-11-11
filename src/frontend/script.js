@@ -13,11 +13,13 @@ const sidebarToggleButton = document.getElementById('sidebar-toggle-button');
 const toggleSidebarCollapsedButton = document.getElementById('toggle-sidebar-collapsed');
 const mobileTopicDisplay = document.querySelector('.mobile-topic-display');
 const micButton = document.getElementById('mic-button');
+
 // const chatInputText = document.getElementById('chat-input');
 
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 let currentThreadId = null;
+let currentAudio = null;
 
 function updateMobileTopicDisplay() {
     // Chỉ chạy nếu tìm thấy span (trên desktop sẽ không có)
@@ -319,25 +321,98 @@ function handleNewChat() {
 /* -------------------------------
    Chat display helpers
    ------------------------------- */
-function addMessage(text, sender, shouldScroll = true) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', sender);
+// function addMessage(text, sender, shouldScroll = true) {
+//     const messageElement = document.createElement('div');
+//     messageElement.classList.add('message', sender);
 
-    const iconElement = document.createElement('div');
-    iconElement.classList.add('message-icon');
-    iconElement.innerHTML = sender === 'assistant'
-        ? '<img src="images/bk.png" alt="Bot">'
-        : '<img src="images/user.png" alt="User">';
+//     const iconElement = document.createElement('div');
+//     iconElement.classList.add('message-icon');
+//     iconElement.innerHTML = sender === 'assistant'
+//         ? '<img src="images/bk.png" alt="Bot">'
+//         : '<img src="images/user.png" alt="User">';
 
-    const textElement = document.createElement('div');
-    textElement.classList.add('message-text');
-    textElement.textContent = text;
+//     const textElement = document.createElement('div');
+//     textElement.classList.add('message-text');
+//     textElement.textContent = text;
 
-    messageElement.appendChild(iconElement);
-    messageElement.appendChild(textElement);
+//     messageElement.appendChild(iconElement);
+//     messageElement.appendChild(textElement);
 
-    chatWindow.appendChild(messageElement);
-    if (shouldScroll) chatWindow.scrollTop = chatWindow.scrollHeight;
+//     chatWindow.appendChild(messageElement);
+//     if (shouldScroll) chatWindow.scrollTop = chatWindow.scrollHeight;
+// }
+
+function addMessage(text, sender, scroll = true) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${sender}`;
+
+    let innerHTML = `
+        <div class="message-icon">${sender === 'assistant' ? '<img src="images/bk.png">' : '<img src="images/user.png">'}</div>
+        <div class="message-text">${text}</div>
+    `;
+
+    if (sender === 'assistant') {
+        innerHTML += `
+            <button class="tts-button" title="Đọc tin nhắn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            </button>
+        `;
+    }
+
+    msgDiv.innerHTML = innerHTML;
+
+    if (sender === 'assistant') {
+        const ttsButton = msgDiv.querySelector('.tts-button');
+        if (ttsButton) {
+            ttsButton.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                // Dừng audio cũ nếu đang phát
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+                
+                ttsButton.disabled = true; // Tắt nút khi đang tải
+
+                try {
+                    // 1. Gọi API /speak của bạn
+                    const response = await fetch(`${API_BASE_URL}/speak`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text })
+                    });
+
+                    if (!response.ok) throw new Error('Không thể tải audio');
+
+                    // 2. Nhận file audio MP3 về
+                    const blob = await response.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    
+                    // 3. Phát audio
+                    currentAudio = new Audio(audioUrl);
+                    currentAudio.play();
+
+                    // 4. Bật lại nút khi phát xong
+                    currentAudio.onended = () => {
+                        ttsButton.disabled = false;
+                        URL.revokeObjectURL(audioUrl); // Giải phóng bộ nhớ
+                        currentAudio = null;
+                    };
+
+                } catch (error) {
+                    console.error("Lỗi khi phát audio:", error);
+                    ttsButton.disabled = false; // Bật lại nút nếu có lỗi
+                }
+            });
+        }
+    }
+
+    chatWindow.appendChild(msgDiv);
+    if (scroll) chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
 function addWelcomeMessage() {
@@ -372,8 +447,12 @@ async function handleChatSubmit(event) {
         });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        if (data.content) addMessage(data.content, 'assistant');
-        else addMessage(`Lỗi: ${data.error || 'Không nhận được phản hồi'}`, 'assistant');
+        if (data.content) 
+            {
+                addMessage(data.content, 'assistant');
+            } else {
+                addMessage(`Lỗi: ${data.error || 'Không nhận được phản hồi'}`, 'assistant');
+            }
         
         const existingElementWrapper = document.querySelector(`.history-item-wrapper[data-thread-id="${currentThreadId}"]`);
 
