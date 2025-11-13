@@ -54,7 +54,7 @@ The project is developed with modern technologies, focusing on **Python** for th
 
 - Python 3.11+ (if running locally without Docker)
 
-### 4.2 Quick Start with Docker
+### 2. Quick Start with Docker
 
 ```bash
 
@@ -70,7 +70,7 @@ docker compose up --build
 
 - Frontend: http://localhost:8080
 
-### 4.3 Run without Docker (Optional)
+### 3. Run without Docker (Optional)
 
 #### Run Backend API
 
