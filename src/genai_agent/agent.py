@@ -24,7 +24,8 @@ SUBGRAPH_PATH_MAP = {
     'undergraduate_info': 'undergraduate_subgraph',
     'graduate_info': 'graduate_subgraph',
     'tuition_fee_info': 'tuition_fee_subgraph',
-    'regulation_info': 'regulation_info_subgraph'
+    'regulation_info': 'regulation_info_subgraph',
+    'wanna_exit': 'wanna_exit_subgraph',
 }
 
 def build_graph():

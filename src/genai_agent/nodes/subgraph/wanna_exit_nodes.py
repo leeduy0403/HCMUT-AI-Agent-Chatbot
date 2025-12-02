@@ -15,7 +15,7 @@ from config import LLM_MODELS
 
 load_dotenv(find_dotenv())
 
-def exit_node(state: AgentState):
+def wanna_exit_node(state: AgentState):
     logger.info("wanna_exit_node called.")
     user_input = state['messages'][-1].content
     chat_history = parsing_messages_to_history(state.get('messages', ''))
@@ -60,7 +60,7 @@ def exit_node(state: AgentState):
         )
         content = remove_think_tag(response.choices[0].message.content)
     except Exception as e:
-        logger.error(f"Error in exit_node: {e}")
+        logger.error(f"Error in wanna_exit_node: {e}")
         content = "Tạm biệt bạn! Xin hẹn gặp lại."
 
     ai_message = AIMessage(
