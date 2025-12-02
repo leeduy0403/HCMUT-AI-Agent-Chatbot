@@ -3,7 +3,7 @@ from ..nodes.subgraph.wanna_exit_nodes import wanna_exit_node
 from ..nodes.reset_topic import reset_topic_node
 from ..states.agent_state import AgentState
 
-def build_exit_subgraph():
+def build_wanna_exit_subgraph():
     graph = StateGraph(AgentState)
     graph.add_node("wanna_exit_node", wanna_exit_node)
     graph.add_node("reset_topic_node", reset_topic_node)
