@@ -27,4 +27,13 @@ LLM_MODELS = {
     "graduate_subgraph":{
         "graduate_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
     },
+    "undergraduate_subgraph":{
+        "undergraduate_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    },
+    "uni_info_subgraph":{
+        "uni_info_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    },
+    "wanna_exit_subgraph":{
+        "wanna_exit_node": os.getenv('GROQ_LLM_MODEL_LLAMA_70B')
+    }
 }
